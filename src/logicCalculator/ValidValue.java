@@ -1,3 +1,5 @@
+package logicCalculator;
+
 public class ValidValue {
 	public boolean isValid;
 	public int value;

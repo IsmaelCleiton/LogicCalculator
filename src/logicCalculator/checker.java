@@ -1,6 +1,10 @@
+
+package logicCalculator;
+
 import java.util.ArrayList;
 
 public class checker {
+
 	public static String OR[] = { "v", "V", "or", "ou", "||", "|", "+", "∨" };
 	public static String AND[] = { "^", "&", "&&", "*", ".", "∧", "and", "e" };
 	public static String EQUIVALENCE[] = { "<>", "↔", "<->", "≡", "⇔", "se, somente se" };
@@ -35,84 +39,94 @@ public class checker {
 	public ArrayList<String> formula;
 	// !(p{asdajsdlskdfjsaldf} ^ !p{dasdasd})
 
-	checker() {
+	public checker() {
 		formula = new ArrayList<String>();
 	}
 
 	public boolean simpleValidation(String formula) {
-		return simpleChecker(Converter(formula, 0), 0, 0);
+		return simpleChecker(Converter(formula), 0, 0);
 	}
 
-	public String Converter(String formula, int toffset) {
+	public String Converter(String formula) {
 		ValidValue Result;
-		if (toffset > formula.length() || toffset == formula.length())
+		if (formula.isEmpty())
 			return "";
 
-		String subFormula = formula.substring(toffset);
+		if (formula.startsWith(OPENPARENTESE)) {
+			this.formula.add("(");
+			return "(" + Converter(formula.substring(1));
+		}
 
-		if (!this.startWithConective(subFormula).isValid && Character.isUpperCase(subFormula.charAt(0))) {
+		if (formula.startsWith(CLOSEPARENTESE)) {
+			this.formula.add(")");
+			return ")" + Converter(formula.substring(1));
+		}
+
+		Result = startWithNegation(formula);
+		if (Result.isValid) {
+			this.formula.add(Negation);
+			return Negation + Converter(formula.substring(Result.value));
+		}
+
+		Result = startWithAnd(formula);
+		if (Result.isValid) {
+			this.formula.add(And);
+			return And + Converter(formula.substring(Result.value));
+		}
+
+		Result = startWithOr(formula);
+		if (Result.isValid) {
+			this.formula.add(Or);
+
+			return Or + Converter(formula.substring(Result.value));
+		}
+		Result = startWithImplication(formula);
+		if (Result.isValid) {
+
+			this.formula.add(Implication);
+
+			return Implication + Converter(formula.substring(Result.value));
+		}
+		Result = startWithEquivalence(formula);
+		if (Result.isValid) {
+
+			this.formula.add(Equivalence);
+
+			return Equivalence + Converter(formula.substring(Result.value));
+		}
+		Result = startWithFalse(formula);
+		if (Result.isValid) {
+			this.formula.add(False);
+			return False + Converter(formula.substring(Result.value));
+		}
+		Result = startWithTrue(formula);
+		if (Result.isValid) {
+			this.formula.add(True);
+
+			return True + Converter(formula.substring(Result.value));
+		}
+
+		if (Character.isUpperCase(formula.charAt(0))) {
 			int count = 0;
-			char[] ArrayChar = subFormula.toCharArray();
+			char[] ArrayChar = formula.toCharArray();
 			for (char char1 : ArrayChar) {
 				if (!Character.isLetter(char1)) {
 					if (count == 0) {
-						return Converter(formula, toffset + 1);
+						return Converter(formula.substring(1));
 					} else {
 						if (!Character.isDigit(char1)) {
-							this.formula.add(subFormula.substring(0, count));
-							return "P{" + subFormula.substring(0, count) + "}" + Converter(formula, toffset + count);
+							this.formula.add(formula.substring(0, count));
+							return "P{" + formula.substring(0, count) + "}" + Converter(formula.substring(count));
 						}
 					}
 				}
 				count++;
 			}
-			this.formula.add(subFormula.substring(0, count));
-			return "P{" + subFormula.substring(0, count) + "}" + Converter(formula, toffset + count);
+			this.formula.add(formula.substring(0, count));
+			return "P{" + formula.substring(0, count) + "}" + Converter(formula.substring(count));
 		}
 
-		Result = startWithNegation(subFormula);
-		if (Result.isValid) {
-			this.formula.add("!");
-			return "!" + Converter(formula, toffset + Result.value);
-		}
-		Result = startWithAnd(subFormula);
-		if (Result.isValid) {
-			this.formula.add(".");
-
-			return "." + Converter(formula, toffset + Result.value);
-		}
-		Result = startWithOr(subFormula);
-		if (Result.isValid) {
-			this.formula.add("+");
-
-			return "+" + Converter(formula, toffset + Result.value);
-		}
-		Result = startWithImplication(subFormula);
-		if (Result.isValid) {
-
-			this.formula.add(">");
-
-			return ">" + Converter(formula, toffset + Result.value);
-		}
-		Result = startWithEquivalence(subFormula);
-		if (Result.isValid) {
-
-			this.formula.add("-");
-
-			return "-" + Converter(formula, toffset + Result.value);
-		}
-		Result = startWithFalse(subFormula);
-		if (Result.isValid) {
-			this.formula.add("⊥");
-			return "⊥" + Converter(formula, toffset + Result.value);
-		}
-		Result = startWithTrue(subFormula);
-		if (Result.isValid) {
-			this.formula.add("⊤");
-
-			return "⊤" + Converter(formula, toffset + Result.value);
-		}
-		return Converter(formula, toffset + 1);
+		return Converter(formula.substring(1));
 	}
 
 	public ValidValue startWithOr(String str) {
@@ -330,14 +344,14 @@ public class checker {
 			if (status == CLOSE_PARENTESE_STATE || status == PROPOSITION_STATE) {
 				return false;
 			}
-			return true && simpleChecker(formula.substring(1), PROPOSITION_STATE, parenteseCount++);
+			return true && simpleChecker(formula.substring(1), OPEN_PARENTESE_STATE, ++parenteseCount);
 		}
 		if (formula.startsWith(CLOSEPARENTESE)) {
 			System.out.println("CloseParen");
 			if (status != CLOSE_PARENTESE_STATE && status != PROPOSITION_STATE) {
 				return false;
 			}
-			return true && simpleChecker(formula.substring(1), PROPOSITION_STATE, parenteseCount--);
+			return true && simpleChecker(formula.substring(1), CLOSE_PARENTESE_STATE, --parenteseCount);
 		}
 
 		System.out.println("fim errado");

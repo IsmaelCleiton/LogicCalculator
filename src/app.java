@@ -1,3 +1,5 @@
+import logicCalculator.*;
+
 public class app {
   static checker test = new checker();
 
@@ -6,8 +8,8 @@ public class app {
     // System.out.println(test.isProposition("try45454dasdasd5"));
 
     // System.out.println(test.formula.toString());
-    String formula = "(!!(P se, somente se Q) + R <-> S))";
-    System.out.println(test.Converter(formula, 0) + "  " + test.simpleValidation(formula));
+    String formula = "(!!(P se, somente se Q) + R <-> S)";
+    System.out.println(test.simpleValidation(formula));
     System.out.println(test.formula.toString());
 
     // System.out.println(function("+asdasd"));

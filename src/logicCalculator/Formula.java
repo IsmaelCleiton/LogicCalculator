@@ -1,3 +1,5 @@
+package logicCalculator;
+
 import java.util.ArrayList;
 
 /*
@@ -14,4 +16,13 @@ import java.util.ArrayList;
 public class Formula {
   private ArrayList<Symbol> symbols;
 
+  public Formula() {
+    symbols = new ArrayList<Symbol>();
+  }
+
+  @Override
+  public String toString() {
+    // TODO Auto-generated method stub
+    return super.toString() + '\n' + symbols.toString();
+  }
 }
